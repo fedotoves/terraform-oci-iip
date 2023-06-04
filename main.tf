@@ -24,15 +24,7 @@ resource "oci_core_instance_pool" "worker_pool" {
   compartment_id = var.compartment_ocid
   instance_configuration_id = oci_core_instance_configuration.worker_config.id
   placement_configurations {
-    availability_domain = var.ads[0]
-    primary_subnet_id = var.workers_net.id
-  }
-  placement_configurations {
-    availability_domain = var.ads[1]
-    primary_subnet_id = var.workers_net.id
-  }
-  placement_configurations {
-    availability_domain = var.ads[2]
+    availability_domain = var.ads
     primary_subnet_id = var.workers_net.id
   }
   size = 2
