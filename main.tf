@@ -11,7 +11,7 @@ resource "oci_core_instance_configuration" "worker_config" {
         ssh_authorized_keys = var.keyfile
         user_data = var.userdata
       }
-      shape = "VM.Standard.E4.Flex"
+      shape = "MySQL.VM.Standard.E4.1.8GB"
       source_details {
         source_type = "image"
         image_id = var.image_ocid
