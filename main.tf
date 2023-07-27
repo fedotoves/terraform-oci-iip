@@ -12,6 +12,9 @@ resource "oci_core_instance_configuration" "worker_config" {
         user_data = var.userdata
       }
       shape = "VM.Standard.E4.Flex"
+      shape_config {
+        memory_in_gbs = 2
+      }
       source_details {
         source_type = "image"
         image_id = var.image_ocid
