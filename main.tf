@@ -79,3 +79,25 @@ resource "oci_autoscaling_auto_scaling_configuration" "workers_pool_autoscale" {
   }
   display_name = "workers-pool-autoscale"
 }
+
+resource "oci_core_instance" "test_instance" {
+  count = 2
+  availability_domain = lookup(var.ads.availability_domains[0], "name")
+  compartment_id      = var.compartment_ocid
+  display_name        = "TestInstanceForInstancePool"
+  instance_configuration_id = oci_core_instance_configuration.worker_config.id
+  shape = "VM.Standard.E4.Flex"
+  shape_config {
+    memory_in_gbs = 2
+  }
+}
+
+resource "oci_core_image" "custom_image" {
+  compartment_id = var.compartment_ocid
+  instance_id    = oci_core_instance.test_instance.id
+  launch_mode    = "NATIVE"
+
+  timeouts {
+    create = "30m"
+  }
+}
