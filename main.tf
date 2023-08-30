@@ -85,7 +85,6 @@ resource "oci_core_instance" "test_instance" {
   availability_domain = lookup(var.ads.availability_domains[0], "name")
   compartment_id      = var.compartment_ocid
   display_name        = "TestInstanceForInstancePool"
-  instance_configuration_id = oci_core_instance_configuration.worker_config.id
   shape = "VM.Standard.E4.Flex"
   shape_config {
     memory_in_gbs = 2
@@ -100,4 +99,11 @@ resource "oci_core_image" "custom_image" {
   timeouts {
     create = "30m"
   }
+}
+
+resource "oci_identity_policy" "iam_policy" {
+  compartment_id = var.compartment_ocid
+  description = "allow admin to manage all"
+  name = "Allow all"
+  statements = "Allow group Administrators to manage all-resources in compartment TerraformInAction"
 }
