@@ -101,10 +101,3 @@ resource "oci_core_image" "custom_image" {
     create = "30m"
   }
 }
-
-resource "oci_identity_policy" "iam_policy" {
-  compartment_id = var.compartment_ocid
-  description = "allow admin to manage all"
-  name = "Allow all"
-  statements = ["Allow group Administrators to manage all-resources in compartment TerraformInAction"]
-}
