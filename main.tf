@@ -86,6 +86,11 @@ resource "oci_core_instance" "test_instance" {
   compartment_id      = var.compartment_ocid
   display_name        = "TestInstanceForInstancePool${count.index}"
   shape = "VM.Standard.E4.Flex"
+  source_details {
+    source_id   =  oci_core_instance_configuration.worker_config.id
+    source_type = "image"
+  }
+
   shape_config {
     memory_in_gbs = 2
   }
