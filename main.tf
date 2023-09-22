@@ -1,9 +1,20 @@
+
+data "oci_identity_fault_domains" "fault_domains_per_ad" {
+  count               = length(var.ads)
+  availability_domain = var.ads.availability_domains[0].name
+  compartment_id      = var.compartment_id
+}
+
+locals {
+  fault_domains_list = [for fd in data.oci_identity_fault_domains.fault_domains_per_ad[0].fault_domains : fd.name]
+}
+
 resource "oci_core_instance_configuration" "worker_config" {
-  compartment_id = var.compartment_ocid
+  compartment_id = var.compartment_id
   instance_details {
     instance_type = "compute"
     launch_details {
-      compartment_id = var.compartment_ocid
+      compartment_id = var.compartment_id
       create_vnic_details {
         assign_public_ip = false
       }
@@ -25,17 +36,23 @@ resource "oci_core_instance_configuration" "worker_config" {
   display_name = "worker-instance-config"
 }
 resource "oci_core_instance_pool" "worker_pool" {
-  compartment_id = var.compartment_ocid
+  count = length(var.ads)
+  compartment_id = var.compartment_id
   instance_configuration_id = oci_core_instance_configuration.worker_config.id
   placement_configurations {
-    availability_domain = lookup(var.ads.availability_domains[0], "name")
+    availability_domain = lookup(var.ads.availability_domains[count.index], "name")
     primary_subnet_id = var.workers_net.id
+    fault_domains       = local.fault_domains_list
   }
-  size = length(var.ads)
+  lifecycle {
+    create_before_destroy = true
+  }
+  size = 1
   display_name = "workers-pool"
 }
+
 resource "oci_autoscaling_auto_scaling_configuration" "workers_pool_autoscale" {
-  compartment_id = var.compartment_ocid
+  compartment_id = var.compartment_id
   auto_scaling_resources {
     id = oci_core_instance_pool.worker_pool.id
     type = "instancePool"
@@ -80,30 +97,19 @@ resource "oci_autoscaling_auto_scaling_configuration" "workers_pool_autoscale" {
   }
   display_name = "workers-pool-autoscale"
 }
-
-resource "oci_core_instance" "test_instance" {
-  count = 2
-  availability_domain = lookup(var.ads.availability_domains[0], "name")
-  compartment_id      = var.compartment_ocid
+/*
+resource "oci_core_instance" "worker_pool_instance" {
+  count = length(var.ads)
+  availability_domain = lookup(var.ads.availability_domains[count.index], "name")
+  compartment_id      = var.compartment_id
   display_name        = "TestInstanceForInstancePool${count.index}"
-  shape = "VM.Standard.E4.Flex"
-  source_details {
-    source_id   =  oci_core_instance_configuration.worker_config.id
-    source_type = "image"
-  }
-
-  shape_config {
-    memory_in_gbs = 2
-  }
+  instance_configuration_id = oci_core_instance_configuration.worker_config.id
+  shape = var.shape
 }
 
-resource "oci_core_image" "custom_image" {
-  count = 2
-  compartment_id = var.compartment_ocid
-  instance_id    = oci_core_instance.test_instance[count.index].id
-  launch_mode    = "NATIVE"
-
-  timeouts {
-    create = "30m"
-  }
+resource "oci_core_instance_pool_instance" "test_instance_pool_instance" {
+  #Required
+  instance_id = oci_core_instance.test_instance.id
+  instance_pool_id = oci_core_instance_pool.test_instance_pool.id
 }
+*/
