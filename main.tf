@@ -11,9 +11,10 @@ resource "oci_core_instance_configuration" "worker_config" {
         ssh_authorized_keys = var.keyfile
         user_data = var.userdata
       }
-      shape = "VM.Standard.E4.Flex"
+      shape = var.shape
       shape_config {
         memory_in_gbs = 2
+        ocpus = 1
       }
       source_details {
         source_type = "image"
@@ -21,7 +22,7 @@ resource "oci_core_instance_configuration" "worker_config" {
       }
     }
   }
-  display_name = "instance-config"
+  display_name = "worker-instance-config"
 }
 resource "oci_core_instance_pool" "worker_pool" {
   compartment_id = var.compartment_ocid
@@ -30,7 +31,7 @@ resource "oci_core_instance_pool" "worker_pool" {
     availability_domain = lookup(var.ads.availability_domains[0], "name")
     primary_subnet_id = var.workers_net.id
   }
-  size = 2
+  size = length(var.ads)
   display_name = "workers-pool"
 }
 resource "oci_autoscaling_auto_scaling_configuration" "workers_pool_autoscale" {
