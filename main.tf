@@ -116,6 +116,6 @@ resource "oci_core_instance_pool_instance" "test_instance_pool_instance" {
     decrement_size_on_delete = true
     auto_terminate_instance_on_delete = false
   }
+  }
 */
 
-}
