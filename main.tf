@@ -36,19 +36,21 @@ resource "oci_core_instance_configuration" "worker_config" {
   display_name = "worker-instance-config"
 }
 resource "oci_core_instance_pool" "worker_pool" {
-  count = length(var.ads)
   compartment_id = var.compartment_id
   instance_configuration_id = oci_core_instance_configuration.worker_config.id
   placement_configurations {
-    availability_domain = lookup(var.ads.availability_domains[count.index], "name")
+    availability_domain = lookup(var.ads.availability_domains[0], "name")
     primary_subnet_id = var.workers_net.id
-    fault_domains       = local.fault_domains_list
+    fault_domains       = local.fault_domains_list[0]
   }
   lifecycle {
     create_before_destroy = true
   }
-  size = 1
+  size = 2
+  state = "RUNNING"
   display_name = "workers-pool"
+  instance_display_name_formatter = "host-$${launchCount}"
+  instance_hostname_formatter = "host-$${launchCount}"
 }
 
 resource "oci_autoscaling_auto_scaling_configuration" "workers_pool_autoscale" {
@@ -108,8 +110,12 @@ resource "oci_core_instance" "worker_pool_instance" {
 }
 
 resource "oci_core_instance_pool_instance" "test_instance_pool_instance" {
-  #Required
-  instance_id = oci_core_instance.test_instance.id
-  instance_pool_id = oci_core_instance_pool.test_instance_pool.id
-}
+
+  instance_pool_id = oci_core_instance_pool.worker_pool.id
+    instance_id = oci_core_instance.test_instance.id
+    decrement_size_on_delete = true
+    auto_terminate_instance_on_delete = false
+  }
 */
+
+}
