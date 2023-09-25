@@ -49,8 +49,6 @@ resource "oci_core_instance_pool" "worker_pool" {
   size = 2
   state = "RUNNING"
   display_name = "workers-pool"
-  instance_display_name_formatter = "host-$${launchCount}"
-  instance_hostname_formatter = "host-$${launchCount}"
 }
 
 resource "oci_autoscaling_auto_scaling_configuration" "workers_pool_autoscale" {
